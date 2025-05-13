@@ -47,9 +47,9 @@ proc getEthernet(data: var seq[string]): Ethernet =
 proc getIP(data: var seq[string]): IPv4 =
   result.version = ($data[0][0]).parseInt
   result.headerLength = ($data[0][1]).parseInt  * 4
-  result.service = data[1].parseHexInt #Если использовать parseInt, то не проходит несколько тестов
+  result.service = data[1].parseHexInt 
   result.totalLength = data[2..3].join("").parseHexInt
-  result.identification = data[4..5].join("")
+  result.identification = $data[4..5].join("").parseHexInt
   result.flags = data[6..7].join("")
   result.ttl = data[8].parseHexInt
   result.protocol = case data[9]:
@@ -66,7 +66,10 @@ proc getUDP(data: var seq[string]): Protocol =
   result.portDST = data[2..3].join.parseHexInt
   result.length = data[4..5].join.parseHexInt
   result.checksum = data[6..7].join
-  result.payload = data[8..^1].join.toLower
+  if result.length > 8:
+    result.payload = data[8..^1].join.toLower
+  else:
+    result.payload = ""
   data = @[]
 
 proc getTCP(data: var seq[string]): Protocol =
@@ -74,7 +77,10 @@ proc getTCP(data: var seq[string]): Protocol =
   result.portDST = data[2..3].join.parseHexInt
   result.length = ($data[12][0]).parseHexInt * 4
   result.checksum = data[16..17].join
-  result.payload = data[result.length..^1].join.toLower
+  if result.length < data.len():
+    result.payload = data[result.length..^1].join.toLower
+  else:
+    result.payload = ""
   data = @[]
 
 proc test1() =
